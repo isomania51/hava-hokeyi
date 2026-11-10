@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b2545">
+<title>Hava Hokeyi</title>
+<link rel="manifest" href="manifest.json">
+<link id="ic" rel="icon" type="image/png" href="icon-192.png">
+<link id="ic2" rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:#fff;overflow:hidden;background:#0b2545;user-select:none;-webkit-user-select:none}
+#app{height:100%;display:flex;align-items:center;justify-content:center;padding:10px}
+.stage{position:relative;touch-action:none}
+#c{width:100%;height:100%;display:block;border-radius:22px;touch-action:none}
+.logo{width:92px;height:92px;border-radius:22px;box-shadow:0 8px 24px rgba(0,0,0,.3);margin-bottom:8px}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:14px;border-radius:22px}
+.hide{display:none!important}
+.glass{width:100%;max-width:340px;padding:22px 18px;border-radius:24px;background:rgba(255,255,255,.12);-webkit-backdrop-filter:blur(16px) saturate(150%);backdrop-filter:blur(16px) saturate(150%);border:1px solid rgba(255,255,255,.3);box-shadow:0 10px 40px rgba(0,0,0,.25);text-align:center}
+h1{margin:0 0 4px;font-size:30px;letter-spacing:.03em}
+.sub{opacity:.85;font-size:14px;margin:0 0 14px}
+.txt{font-size:15px;line-height:1.5;text-align:left;margin:10px 0 0;opacity:.95}
+.lbl{margin:14px 0 0;font-size:13px;opacity:.85;text-align:left}
+.seg{display:flex;gap:6px;margin-top:6px}
+.seg button,.btn,#pb{font:inherit;color:#fff;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:14px;cursor:pointer;transition:background .15s,transform .1s}
+.seg button{flex:1;padding:10px 4px;font-size:14px}
+.seg button.on{background:rgba(255,255,255,.36);border-color:rgba(255,255,255,.75);font-weight:700}
+.btn{display:block;width:100%;margin-top:10px;padding:13px;font-size:17px;font-weight:700}
+.btn.main{background:rgba(255,255,255,.3);margin-top:18px}
+.btn:active,.seg button:active{transform:scale(.97)}
+#pb{position:absolute;top:10px;right:10px;width:42px;height:42px;border-radius:50%;font-size:16px;padding:0}
+button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.big{font-size:44px;margin:6px 0}
+</style>
+</head>
+<body>
+<div id="app">
+ <div class="stage" id="st">
+  <canvas id="c"></canvas>
+  <button id="pb" class="hide" aria-label="Duraklat">❚❚</button>
+
+  <div class="overlay" id="home">
+   <div class="glass">
+    <canvas id="logo" class="logo"></canvas>
+    <h1>Hava Hokeyi</h1>
+    <p class="sub">Diski rakibin kalesine sok</p>
+    <button class="btn main" id="play">Oyuna başla</button>
+    <button class="btn" id="toset">Ayarlar</button>
+    <button class="btn" id="tohelp">Nasıl oynanır</button>
+   </div>
+  </div>
+
+  <div class="overlay hide" id="settings">
+   <div class="glass">
+    <h1>Ayarlar</h1>
+    <div class="lbl">Zorluk</div>
+    <div class="seg" data-k="diff"><button data-v="0">Kolay</button><button data-v="1">Orta</button><button data-v="2">Zor</button></div>
+    <div class="lbl">Tema</div>
+    <div class="seg" data-k="theme"><button data-v="buz">Buz</button><button data-v="neon">Neon</button><button data-v="gun">Gün batımı</button></div>
+    <div class="lbl">Bitiş skoru</div>
+    <div class="seg" data-k="limit"><button data-v="3">3</button><button data-v="5">5</button><button data-v="7">7</button></div>
+    <button class="btn main" id="back1">Geri</button>
+   </div>
+  </div>
+
+  <div class="overlay hide" id="help">
+   <div class="glass">
+    <h1>Nasıl oynanır</h1>
+    <p class="txt">Alt yarıdaki raketi parmağınla ya da fareyle sürükle.</p>
+    <p class="txt">Diski rakibin üstteki kalesine sok, kendi kaleni koru.</p>
+    <p class="txt">Bitiş skoruna ilk ulaşan kazanır. Duraklatmak için sağ üstteki düğmeye ya da Esc tuşuna bas.</p>
+    <button class="btn main" id="back2">Geri</button>
+   </div>
+  </div>
+
+  <div class="overlay hide" id="pause">
+   <div class="glass">
+    <h1>Duraklatıldı</h1>
+    <button class="btn main" id="resume">Devam et</button>
+    <button class="btn" id="restart1">Yeniden başlat</button>
+    <button class="btn" id="tomenu1">Ana ekran</button>
+   </div>
+  </div>
+
+  <div class="overlay hide" id="over">
+   <div class="glass">
+    <h1 id="res"></h1>
+    <div class="big" id="fs"></div>
+    <button class="btn main" id="again">Tekrar oyna</button>
+    <button class="btn" id="tomenu2">Ana ekran</button>
+   </div>
+  </div>
+ </div>
+</div>
+
+<script>
+const $=i=>document.getElementById(i);
+const W=400,H=640,PR=30,R=15,GW=140,MAXV=17;
+const cv=$('c'),ctx=cv.getContext('2d');
+cv.width=W*2;cv.height=H*2;
+
+const TH={
+ buz:{bg:'linear-gradient(160deg,#0b2545,#13538a 55%,#6bc5e8)',ln:'rgba(255,255,255,.7)',me:'#7fe3ff',ai:'#ff9ec7',pk:'#ffffff'},
+ neon:{bg:'linear-gradient(160deg,#10001f,#1b0a3a 55%,#00334e)',ln:'#19f3ff',me:'#19f3ff',ai:'#ff2bd6',pk:'#fff95c'},
+ gun:{bg:'linear-gradient(160deg,#2a0a3d,#a2386b 55%,#ff9a4d)',ln:'rgba(255,236,210,.8)',me:'#ffd166',ai:'#ff5d73',pk:'#ffffff'}
+};
+const AIS=[3,4.8,7];
+let cfg={diff:1,theme:'buz',limit:5},state='menu';
+try{Object.assign(cfg,JSON.parse(localStorage.getItem('hh_cfg')||'{}'))}catch(e){}
+if(!TH[cfg.theme])cfg.theme='buz';
+function save(){try{localStorage.setItem('hh_cfg',JSON.stringify(cfg))}catch(e){}}
+
+let puck,me,ai,sc=[0,0],serve=0,sdir=1,flash=0,msg='';
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+function drawIcon(c,s,rad){
+ const x=c.getContext('2d');c.width=c.height=s;
+ const g=x.createLinearGradient(0,0,s,s);
+ g.addColorStop(0,'#0b2545');g.addColorStop(.6,'#13538a');g.addColorStop(1,'#6bc5e8');
+ x.fillStyle=g;x.beginPath();x.roundRect(0,0,s,s,s*rad);x.fill();
+ x.strokeStyle='rgba(255,255,255,.7)';x.lineWidth=s*.02;
+ x.beginPath();x.moveTo(s*.1,s/2);x.lineTo(s*.9,s/2);x.stroke();
+ x.beginPath();x.arc(s/2,s/2,s*.17,0,7);x.stroke();
+ const d=(px,py,r,col)=>{
+  x.save();x.shadowColor=col;x.shadowBlur=s*.06;
+  const gr=x.createRadialGradient(px-r*.3,py-r*.3,r*.1,px,py,r);
+  gr.addColorStop(0,'#fff');gr.addColorStop(.4,col);gr.addColorStop(1,col);
+  x.fillStyle=gr;x.beginPath();x.arc(px,py,r,0,7);x.fill();x.restore();
+ };
+ d(s*.36,s*.24,s*.13,'#ff9ec7');
+ d(s*.64,s*.76,s*.13,'#7fe3ff');
+ d(s*.5,s*.5,s*.07,'#ffffff');
+}
+function setIcons(){drawIcon($('logo'),192,.22)}
+
+function init(){
+ sc=[0,0];flash=0;
+ me={x:W/2,y:H-90,vx:0,vy:0,tx:W/2,ty:H-90};
+ ai={x:W/2,y:90,vx:0,vy:0};
+ reset(1);
+}
+function reset(d){puck={x:W/2,y:H/2,vx:0,vy:0};serve=70;sdir=d}
+function demoStart(){puck={x:W/2,y:H/2,vx:2.4,vy:3.1};serve=0}
+
+const PANELS=['home','settings','help','pause','over'];
+function show(id){
+ PANELS.forEach(i=>$(i).classList.toggle('hide',i!==id));
+ $('pb').classList.toggle('hide',id!==null);
+}
+function applyTheme(){document.body.style.background=TH[cfg.theme].bg}
+function sync(){
+ document.querySelectorAll('.seg').forEach(g=>[...g.children].forEach(b=>b.classList.toggle('on',String(cfg[g.dataset.k])===b.dataset.v)));
+}
+function fit(){
+ const a=$('app'),w=a.clientWidth-20,h=a.clientHeight-20,s=Math.min(w/W,h/H),st=$('st');
+ st.style.width=W*s+'px';st.style.height=H*s+'px';
+}
+
+function startGame(){init();state='play';show(null)}
+function pauseGame(){if(state==='play'){state='pause';show('pause')}}
+function toMenu(){state='menu';init();demoStart();show('home')}
+
+document.querySelectorAll('.seg').forEach(g=>g.addEventListener('click',e=>{
+ const b=e.target.closest('button');if(!b)return;
+ const k=g.dataset.k;cfg[k]=k==='theme'?b.dataset.v:+b.dataset.v;
+ sync();save();if(k==='theme')applyTheme();
+}));
+$('play').onclick=startGame;
+$('toset').onclick=()=>show('settings');
+$('tohelp').onclick=()=>show('help');
+$('back1').onclick=()=>show('home');
+$('back2').onclick=()=>show('home');
+$('again').onclick=startGame;
+$('restart1').onclick=startGame;
+$('resume').onclick=()=>{state='play';show(null)};
+$('pb').onclick=pauseGame;
+$('tomenu1').onclick=toMenu;
+$('tomenu2').onclick=toMenu;
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame()});
+addEventListener('keydown',e=>{if(e.key==='Escape'||e.key==='p')state==='pause'?$('resume').onclick():pauseGame()});
+addEventListener('resize',fit);
+
+function pt(e){
+ const r=cv.getBoundingClientRect();
+ me.tx=(e.clientX-r.left)/r.width*W;
+ me.ty=(e.clientY-r.top)/r.height*H-(e.pointerType==='touch'?40:0);
+}
+cv.addEventListener('pointerdown',e=>{pt(e);cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',pt);
+
+function stepPaddle(p,tx,ty,sp,y0,y1){
+ const ox=p.x,oy=p.y;let dx=tx-p.x,dy=ty-p.y;const d=Math.hypot(dx,dy);
+ if(d>sp){dx*=sp/d;dy*=sp/d}
+ p.x=clamp(p.x+dx,PR,W-PR);p.y=clamp(p.y+dy,y0,y1);
+ p.vx=p.x-ox;p.vy=p.y-oy;
+}
+
+function hit(p){
+ const dx=puck.x-p.x,dy=puck.y-p.y,d=Math.hypot(dx,dy),m=PR+R;
+ if(d<m&&d>0){
+  const nx=dx/d,ny=dy/d;
+  puck.x=p.x+nx*m;puck.y=p.y+ny*m;
+  let rx=puck.vx-p.vx,ry=puck.vy-p.vy;
+  const vn=rx*nx+ry*ny;
+  if(vn<0){rx-=2*vn*nx;ry-=2*vn*ny}
+  puck.vx=rx*1.03+p.vx;puck.vy=ry*1.03+p.vy;
+  const s=Math.hypot(puck.vx,puck.vy);
+  if(s>MAXV){puck.vx*=MAXV/s;puck.vy*=MAXV/s}
+ }
+}
+
+function goal(w){
+ sc[w]++;flash=70;msg=w?'Gol yedin':'GOL!';
+ if(sc[w]>=cfg.limit){
+  state='over';
+  $('res').textContent=w?'Kaybettin':'Kazandın!';
+  $('fs').textContent=sc[0]+' – '+sc[1];
+  show('over');return;
+ }
+ reset(w?1:-1);
+}
+
+function update(){
+ stepPaddle(me,me.tx,me.ty,26,H/2+PR,H-PR);
+ let tx,ty;
+ if(puck.y<H/2+10&&puck.y>ai.y-5){tx=puck.x;ty=puck.y-22}
+ else{tx=W/2+(puck.x-W/2)*.55;ty=80}
+ stepPaddle(ai,tx,ty,AIS[cfg.diff],PR,H/2-PR);
+ if(flash>0)flash--;
+ if(serve>0){
+  if(--serve===0){puck.vy=sdir*5;puck.vx=(Math.random()-.5)*5}
+  return;
+ }
+ for(let i=0;i<2;i++){
+  puck.x+=puck.vx/2;puck.y+=puck.vy/2;
+  if(puck.x<R){puck.x=R;puck.vx=Math.abs(puck.vx)}
+  if(puck.x>W-R){puck.x=W-R;puck.vx=-Math.abs(puck.vx)}
+  const ing=Math.abs(puck.x-W/2)<GW/2-R/2;
+  if(puck.y<R&&!ing){puck.y=R;puck.vy=Math.abs(puck.vy)}
+  if(puck.y>H-R&&!ing){puck.y=H-R;puck.vy=-Math.abs(puck.vy)}
+  hit(me);hit(ai);
+ }
+ puck.vx*=.994;puck.vy*=.994;
+ if(puck.y<-R)goal(0);else if(puck.y>H+R)goal(1);
+}
+
+function demoStep(){
+ puck.x+=puck.vx;puck.y+=puck.vy;
+ if(puck.x<R||puck.x>W-R){puck.vx*=-1;puck.x=clamp(puck.x,R,W-R)}
+ if(puck.y<R||puck.y>H-R){puck.vy*=-1;puck.y=clamp(puck.y,R,H-R)}
+ hit(me);hit(ai);
+ const s=Math.hypot(puck.vx,puck.vy)||1;
+ puck.vx*=3.8/s;puck.vy*=3.8/s;
+}
+
+function disc(x,y,r,c){
+ ctx.save();
+ ctx.shadowColor=c;ctx.shadowBlur=22;
+ const g=ctx.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r);
+ g.addColorStop(0,'#fff');g.addColorStop(.35,c);g.addColorStop(1,c);
+ ctx.globalAlpha=.92;ctx.fillStyle=g;
+ ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();
+ ctx.restore();
+}
+
+function draw(){
+ const t=TH[cfg.theme];
+ ctx.setTransform(2,0,0,2,0,0);
+ ctx.clearRect(0,0,W,H);
+ ctx.fillStyle='rgba(255,255,255,.08)';
+ ctx.strokeStyle=t.ln;ctx.lineWidth=3;
+ ctx.beginPath();ctx.roundRect(2,2,W-4,H-4,22);ctx.fill();
+ ctx.save();ctx.shadowColor=t.ln;ctx.shadowBlur=10;ctx.stroke();ctx.restore();
+ ctx.lineWidth=2;ctx.globalAlpha=.7;
+ ctx.beginPath();ctx.moveTo(8,H/2);ctx.lineTo(W-8,H/2);ctx.stroke();
+ ctx.beginPath();ctx.arc(W/2,H/2,62,0,7);ctx.stroke();
+ ctx.globalAlpha=1;
+ ctx.save();ctx.lineWidth=8;ctx.lineCap='round';
+ ctx.shadowBlur=16;
+ ctx.strokeStyle=ctx.shadowColor=t.ai;
+ ctx.beginPath();ctx.moveTo(W/2-GW/2,3);ctx.lineTo(W/2+GW/2,3);ctx.stroke();
+ ctx.strokeStyle=ctx.shadowColor=t.me;
+ ctx.beginPath();ctx.moveTo(W/2-GW/2,H-3);ctx.lineTo(W/2+GW/2,H-3);ctx.stroke();
+ ctx.restore();
+ ctx.textAlign='center';ctx.textBaseline='middle';
+ if(state!=='menu'){
+  ctx.font='bold 110px "Trebuchet MS",system-ui,sans-serif';
+  ctx.fillStyle='rgba(255,255,255,.16)';
+  ctx.fillText(sc[1],W/2,H/2-125);
+  ctx.fillText(sc[0],W/2,H/2+125);
+ }
+ disc(ai.x,ai.y,PR,t.ai);
+ disc(me.x,me.y,PR,t.me);
+ disc(puck.x,puck.y,R,t.pk);
+ if(flash>0){
+  ctx.globalAlpha=Math.min(1,flash/30);
+  ctx.font='bold 64px "Trebuchet MS",system-ui,sans-serif';
+  ctx.fillStyle='#fff';ctx.shadowColor='#000';ctx.shadowBlur=14;
+  ctx.fillText(msg,W/2,H/2);
+  ctx.globalAlpha=1;ctx.shadowBlur=0;
+ }
+}
+
+let lt=0,acc=0;
+function loop(ts){
+ requestAnimationFrame(loop);
+ const dt=Math.min(50,ts-lt||16);lt=ts;
+ if(state==='play'||state==='menu'){
+  acc+=dt;
+  while(acc>=16.67){
+   state==='play'?update():demoStep();
+   acc-=16.67;
+   if(state!=='play'&&state!=='menu'){acc=0;break}
+  }
+ }
+ draw();
+}
+
+applyTheme();sync();fit();setIcons();init();demoStart();show('home');
+requestAnimationFrame(loop);
+
+if('serviceWorker' in navigator){
+ window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
+}
+</script>
+</body>
+</html>
